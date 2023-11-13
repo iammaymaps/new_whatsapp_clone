@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:new_whatsapp_clone/common/enum/message_enum.dart';
 import 'package:new_whatsapp_clone/common/utils/utils.dart';
 import 'package:new_whatsapp_clone/models/chat_Contact_models.dart';
 import 'package:new_whatsapp_clone/models/userModels.dart';
@@ -25,7 +26,42 @@ class ChatRepository {
         contactId: sendUserData.uid,
         timeSent: timeSent,
         lastMessage: text);
+
+    await firestore
+        .collection('users')
+        .doc(recieverUserID)
+        .collection('chats')
+        .doc(auth.currentUser!.uid)
+        .set(recieverChatContact.toMap());
+
+         var senderChatContact = ChatContact(
+        name: recieverUserData.name,
+        profilePic: recieverUserData.profilePic,
+        contactId: recieverUserData.uid,
+        timeSent: timeSent,
+        lastMessage: text);
+
+    await firestore
+        .collection('users')
+        .doc(recieverUserID)
+        .collection('chats')
+        .doc(auth.currentUser!.uid)
+        .set(senderChatContact.toMap());
   }
+
+void _saveMessageToMessageSubcollection(
+    {
+      required String recieverUserId,
+           required String text,
+           required DateTime timeSent,
+                required String messageId,
+                     required String username,
+                       required  recieverusername,
+                       required MessageEnum messageType,
+    }
+)async{
+
+}
 
   void sendTextMessage(
       {required BuildContext context,
@@ -39,6 +75,10 @@ class ChatRepository {
       var userDataMap =
           await firestore.collection('users').doc(recieverID).get();
       recieverUserData = UserModel.fromMap(userDataMap.data()!);
+
+      _saveDataToContactsSubcollection(
+          senderID, recieverUserData, text, timeSent, recieverID,);
+          _saveMessageToMessageSubcollection()
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
     }
