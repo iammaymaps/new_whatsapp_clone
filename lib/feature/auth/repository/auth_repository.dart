@@ -13,7 +13,6 @@ import 'package:new_whatsapp_clone/models/userModels.dart';
 import 'package:new_whatsapp_clone/screens/mobile_layout_screen.dart';
 import 'package:riverpod/riverpod.dart';
 
-
 final authRepositoryProvider = Provider((ref) => AuthRepository(
     auth: FirebaseAuth.instance, firestore: FirebaseFirestore.instance));
 
@@ -53,6 +52,7 @@ class AuthRepository {
           codeAutoRetrievalTimeout: (String verificationId) {});
     } on FirebaseAuthException catch (e) {
       showSnackBar(context: context, content: e.message!);
+      print("The Error is 1 ${e.message!}");
     }
   }
 
@@ -70,6 +70,7 @@ class AuthRepository {
           context, UserInformationScreen.routeName, (route) => false);
     } on FirebaseAuthException catch (e) {
       showSnackBar(context: context, content: e.message!);
+        print("The Error is 2 ${e.message!}");
     }
   }
 
@@ -86,7 +87,10 @@ class AuthRepository {
       if (profilePic != null) {
         photoUrl = await ref
             .read(commomFirebaseStorageRepositoryProvider)
-            .storeFileToFirebase('/profilePic', profilePic);
+            .storeFileToFirebase(
+              'profilePic/$uid',
+              profilePic,
+            );
       }
       var user = UserModel(
           name: name,
@@ -104,6 +108,7 @@ class AuthRepository {
           (route) => false);
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
+        print("The Error is 3 ${e.toString}");
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:new_whatsapp_clone/common/enum/message_enum.dart';
+import 'package:new_whatsapp_clone/common/repository/firebase_commom_storage_repository.dart';
 import 'package:new_whatsapp_clone/common/utils/utils.dart';
 import 'package:new_whatsapp_clone/models/chat_Contact_models.dart';
 import 'package:new_whatsapp_clone/models/message_model.dart';
@@ -20,7 +21,32 @@ class ChatRepository {
     required this.auth,
   });
 
-  var messageId = const Uuid().v4();
+  Stream<List<ChatContact>> getChatContact() {
+    return firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .collection('chats')
+        .snapshots()
+        .asyncMap((event) async {
+      List<ChatContact> contacts = [];
+      for (var document in event.docs) {
+        var chatContact = ChatContact.fromMap(document.data());
+        var userData = await firestore
+            .collection('users')
+            .doc(chatContact.contactId)
+            .get();
+        var user = UserModel.fromMap(userData.data()!);
+
+        contacts.add(ChatContact(
+            name: user.name,
+            profilePic: user.profilePic,
+            contactId: chatContact.contactId,
+            timeSent: chatContact.timeSent,
+            lastMessage: chatContact.lastMessage));
+      }
+      return contacts;
+    });
+  }
 
   void _saveDataToContactsSubcollection(
     UserModel sendUserData,
@@ -30,9 +56,9 @@ class ChatRepository {
     String recieverUserID,
   ) async {
     var recieverChatContact = ChatContact(
-        name: sendUserData.name,
-        profilePic: sendUserData.profilePic,
-        contactId: sendUserData.uid,
+        name: recieverUserData.name,
+        profilePic: recieverUserData.profilePic,
+        contactId: recieverUserData.uid,
         timeSent: timeSent,
         lastMessage: text);
 
@@ -44,9 +70,9 @@ class ChatRepository {
         .set(recieverChatContact.toMap());
 
     var senderChatContact = ChatContact(
-        name: recieverUserData.name,
-        profilePic: recieverUserData.profilePic,
-        contactId: recieverUserData.uid,
+        name: sendUserData.name,
+        profilePic: sendUserData.profilePic,
+        contactId: sendUserData.uid,
         timeSent: timeSent,
         lastMessage: text);
 
@@ -89,25 +115,26 @@ class ChatRepository {
         .collection('users')
         .doc(recieverUserId)
         .collection('chats')
-        .doc(recieverUserId)
+        .doc(auth.currentUser!.uid)
         .collection('messages')
         .doc(messageId)
         .set(message.toMap());
   }
 
-  void sendTextMessage(
-      {required BuildContext context,
-      required String text,
-      required String recieverUserID,
-      required UserModel senderID}) async {
+  void sendTextMessage({
+    required BuildContext context,
+    required String text,
+    required String recieverUserID,
+    required UserModel senderID,
+  }) async {
     try {
       var timeSent = DateTime.now();
-      UserModel recieverUserData;
+      UserModel? recieverUserData;
 
       var userDataMap =
           await firestore.collection('users').doc(recieverUserID).get();
       recieverUserData = UserModel.fromMap(userDataMap.data()!);
-
+      var messageId = const Uuid().v4();
       _saveDataToContactsSubcollection(
         senderID,
         recieverUserData,
@@ -121,10 +148,13 @@ class ChatRepository {
           timeSent: timeSent,
           messageId: messageId,
           username: senderID.name,
-          recieverusername: recieverUserData.name,
+          recieverusername: recieverUserData?.name,
           messageType: MessageEnum.text);
-    } catch (e) {
+      print("Scess");
+    } catch (e, stackTrace) {
       showSnackBar(context: context, content: e.toString());
+      print("The Error is 4 $e");
+      print(stackTrace);
     }
   }
 }

@@ -1,31 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:new_whatsapp_clone/colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BottomChatField extends StatefulWidget {
+import 'package:new_whatsapp_clone/colors.dart';
+import 'package:new_whatsapp_clone/feature/chat/controller/chat_controller.dart';
+
+class BottomChatField extends ConsumerStatefulWidget {
+  final String receviderId;
+
   const BottomChatField({
-    super.key,
+    required this.receviderId,
   });
 
   @override
-  State<BottomChatField> createState() => _BottomChatFieldState();
+  ConsumerState<BottomChatField> createState() => _BottomChatFieldState();
 }
 
-class _BottomChatFieldState extends State<BottomChatField> {
-  bool isShowButton = false;
+class _BottomChatFieldState extends ConsumerState<BottomChatField> {
+  final TextEditingController _messageContrpller = TextEditingController();
+  bool isShowSendButton = false;
+
+  void sendToMessage() async {
+    if (isShowSendButton) {
+      ref.read(chatControllerProvider).sendTextMessage(
+          context, _messageContrpller.text.trim(), widget.receviderId);
+      print("The Error is ${widget.receviderId}");
+      setState(() {
+        _messageContrpller.text = '';
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _messageContrpller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: TextFormField(
+            controller: _messageContrpller,
             onChanged: (val) {
               if (val.isNotEmpty) {
                 setState(() {
-                  isShowButton = true;
+                  isShowSendButton = true;
                 });
               } else {
                 setState(() {
-                  isShowButton = false;
+                  isShowSendButton = false;
                 });
               }
             },
@@ -88,9 +114,12 @@ class _BottomChatFieldState extends State<BottomChatField> {
           padding: const EdgeInsets.only(bottom: 8, right: 2, left: 2),
           child: CircleAvatar(
             backgroundColor: const Color(0xFF128C7E),
-            child: Icon(
-              isShowButton ? Icons.send : Icons.mic,
-              color: Colors.white,
+            child: GestureDetector(
+              onTap: sendToMessage,
+              child: Icon(
+                isShowSendButton ? Icons.send : Icons.mic,
+                color: Colors.white,
+              ),
             ),
           ),
         )

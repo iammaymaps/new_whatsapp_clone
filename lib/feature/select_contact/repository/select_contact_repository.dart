@@ -64,6 +64,7 @@ class SelectContactRepository {
       }
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
+       print("The Error is 5 ${e.toString}");
     }
   }
 }

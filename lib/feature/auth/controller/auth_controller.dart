@@ -34,16 +34,23 @@ class AuthController {
 
   void verifyOTP(BuildContext context, String verificationId, String userOTP) {
     authRepository.verifyOTP(
-        context: context, verificationId: verificationId, userOTP: userOTP);
+      context: context,
+      verificationId: verificationId,
+      userOTP: userOTP,
+    );
   }
 
   void saveUseDataToFirebase(
       BuildContext context, String name, File? profilePic) {
     authRepository.saveUserDataToFirebase(
-        name: name, profilePic: profilePic, ref: ref, context: context);
+      name: name,
+      profilePic: profilePic,
+      ref: ref,
+      context: context,
+    );
   }
 
-  Stream<UserModel> userData(String userID) {
+  Stream<UserModel> userDataById(String userID) {
     return authRepository.userData(userID);
   }
 }
