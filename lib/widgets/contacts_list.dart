@@ -21,6 +21,11 @@ class ContactsList extends ConsumerWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Loader();
             }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Text('No contacts available'),
+              );
+            }
             return ListView.builder(
               shrinkWrap: true,
               itemCount: snapshot.data!.length,
