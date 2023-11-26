@@ -70,7 +70,7 @@ class AuthRepository {
           context, UserInformationScreen.routeName, (route) => false);
     } on FirebaseAuthException catch (e) {
       showSnackBar(context: context, content: e.message!);
-        print("The Error is 2 ${e.message!}");
+      print("The Error is 2 ${e.message!}");
     }
   }
 
@@ -108,7 +108,7 @@ class AuthRepository {
           (route) => false);
     } catch (e) {
       showSnackBar(context: context, content: e.toString());
-        print("The Error is 3 ${e.toString}");
+      print("The Error is 3 ${e.toString}");
     }
   }
 
@@ -118,5 +118,12 @@ class AuthRepository {
         .doc(userID)
         .snapshots()
         .map((event) => UserModel.fromMap(event.data()!));
+  }
+
+  void setUserState(bool isOnline) async {
+    await firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .update({'isOnline': isOnline});
   }
 }

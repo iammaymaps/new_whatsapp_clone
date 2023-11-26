@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:new_whatsapp_clone/common/enum/message_enum.dart';
 import 'package:new_whatsapp_clone/common/repository/firebase_commom_storage_repository.dart';
 import 'package:new_whatsapp_clone/common/utils/utils.dart';
+import 'package:new_whatsapp_clone/info.dart';
 import 'package:new_whatsapp_clone/models/chat_Contact_models.dart';
 import 'package:new_whatsapp_clone/models/message_model.dart';
 import 'package:new_whatsapp_clone/models/userModels.dart';
@@ -45,6 +48,24 @@ class ChatRepository {
             lastMessage: chatContact.lastMessage));
       }
       return contacts;
+    });
+  }
+
+  Stream<List<Message>> getChatStream(String recieverUserId) {
+    return firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .collection('chats')
+        .doc(recieverUserId)
+        .collection('messages')
+        .orderBy('timeSent')
+        .snapshots()
+        .map((event) {
+      List<Message> message = [];
+      for (var document in event.docs) {
+        message.add(Message.fromMap(document.data()));
+      }
+      return message;
     });
   }
 
@@ -155,6 +176,59 @@ class ChatRepository {
       showSnackBar(context: context, content: e.toString());
       print("The Error is 4 $e");
       print(stackTrace);
+    }
+  }
+
+  void sendFileMessage({
+    required BuildContext context,
+    required File file,
+    required String recieverUserId,
+    required UserModel sendUserData,
+    required ProviderRef ref,
+    required MessageEnum messageEnum,
+  }) async {
+    try {
+      var timeSent = DateTime.now();
+      var messageId = const Uuid().v1();
+
+      String imageUrl = await ref
+          .read(commomFirebaseStorageRepositoryProvider)
+          .storeFileToFirebase(
+              'chat/${messageEnum.type}/${sendUserData.uid}/$recieverUserId/$messageId',
+              file);
+      UserModel recieverUserData;
+      var userDataMap =
+          await firestore.collection('users').doc(recieverUserId).get();
+      recieverUserData = UserModel.fromMap(userDataMap.data()!);
+      String contactMsg;
+
+      switch (messageEnum) {
+        case MessageEnum.image:
+          contactMsg = '📷 Photo';
+        case MessageEnum.video:
+          contactMsg = '📸 video';
+        case MessageEnum.audio:
+          contactMsg = '🎵 audio';
+        case MessageEnum.gif:
+          contactMsg = 'gif';
+          break;
+        default:
+          contactMsg = "GIF";
+      }
+
+      _saveDataToContactsSubcollection(
+          sendUserData, recieverUserData, contactMsg, timeSent, recieverUserId);
+
+      _saveMessageToMessageSubcollection(
+          recieverUserId: recieverUserId,
+          text: imageUrl,
+          timeSent: timeSent,
+          messageId: messageId,
+          username: sendUserData.name,
+          recieverusername: recieverUserData.name,
+          messageType: messageEnum);
+    } catch (e) {
+      showSnackBar(context: context, content: e.toString());
     }
   }
 }
