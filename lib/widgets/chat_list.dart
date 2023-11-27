@@ -54,11 +54,13 @@ class _ChatListState extends ConsumerState<ChatList> {
                 return MyMessageCard(
                   message: messageData.text,
                   date: timeSent,
+                  type: messageData.tyep,
                 );
               }
               return SenderMessageCard(
                 message: messageData.text,
                 date: timeSent,
+                type: messageData.tyep,
               );
             },
           );
