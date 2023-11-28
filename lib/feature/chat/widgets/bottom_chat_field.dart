@@ -54,6 +54,13 @@ class _BottomChatFieldState extends ConsumerState<BottomChatField> {
     }
   }
 
+  void selectVideo() async {
+    File? Video = await pickVideoFromGallary(context);
+    if (Video != null) {
+      sendFileMessage(Video, MessageEnum.video);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -107,8 +114,11 @@ class _BottomChatFieldState extends ConsumerState<BottomChatField> {
                             Icons.camera_alt,
                             color: Colors.grey,
                           )),
-                      Icon(
-                        Icons.attach_file,
+                      IconButton(
+                        onPressed: selectVideo,
+                        icon: Icon(
+                          Icons.attach_file,
+                        ),
                         color: Colors.grey,
                       ),
                     ],

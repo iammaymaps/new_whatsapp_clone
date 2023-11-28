@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:new_whatsapp_clone/common/enum/message_enum.dart';
+import 'package:new_whatsapp_clone/widgets/Video%20Player%20Widget.dart';
 
 class DisplayTextGig extends StatelessWidget {
   const DisplayTextGig({
@@ -19,6 +20,8 @@ class DisplayTextGig extends StatelessWidget {
             message,
             style: const TextStyle(fontSize: 16),
           )
-        : CachedNetworkImage(imageUrl: message);
+        : type == MessageEnum.video
+            ? VideoPlayerItem(videoUrl: message)
+            : CachedNetworkImage(imageUrl: message);
   }
 }
